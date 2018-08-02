@@ -66,3 +66,8 @@ fastlane/report.xml
 fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
+AirNetwork.xcodeproj/project.pbxproj
+AirNetwork.xcodeproj/project.xcworkspace/contents.xcworkspacedata
+AirNetwork.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
+Source/AirNetwork.h
+Source/Info.plist

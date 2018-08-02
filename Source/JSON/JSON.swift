@@ -368,33 +368,18 @@ extension JSON: Equatable {
     
 }
 
-// MARK: - NSNumber + Extension
-extension NSNumber {
-    
-    private var trueNumber: NSNumber { return NSNumber(value: true) }
-    private var falseNumber: NSNumber { return NSNumber(value: false) }
-    private var trueObjCType: String { return String(cString: trueNumber.objCType) }
-    private var falseObjCType: String { return String(cString: falseNumber.objCType) }
-    
-    var isBool: Bool {
-        let objCType = String(cString: self.objCType)
-        return (self.compare(trueNumber) == .orderedSame && objCType == trueObjCType) || (self.compare(falseNumber) == .orderedSame && objCType == falseObjCType)
-    }
-    
-}
-
 // MARK: - Data
 extension JSON {
-    
+
     public func jsonData(options:JSONSerialization.WritingOptions = .prettyPrinted) -> Data? {
         let object = self.object
         guard JSONSerialization.isValidJSONObject(object) else { return nil }
         return try? JSONSerialization.data(withJSONObject: object, options: options)
     }
-    
+
     public func jsonString(encoding: String.Encoding = .utf8, options:JSONSerialization.WritingOptions = .prettyPrinted) -> String? {
         guard let data = self.jsonData(options: options) else { return nil }
         return String(data: data, encoding: encoding)
     }
-        
+
 }

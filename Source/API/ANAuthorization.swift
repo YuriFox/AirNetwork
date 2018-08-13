@@ -30,6 +30,19 @@ public struct ANAuthorization: Hashable, CustomStringConvertible {
         self.token = token
     }
     
+    public init?(string: String) {
+        let strings = string.components(separatedBy: " ")
+        
+        guard
+            strings.indices.contains(0) && strings.indices.contains(1),
+            let type = ANAuthorizationType(rawValue: strings[0])
+        else { return nil }
+        
+        self.type = type
+        self.token = strings[1]
+        
+    }
+    
 }
 
 public enum ANAuthorizationType: String, CustomStringConvertible {

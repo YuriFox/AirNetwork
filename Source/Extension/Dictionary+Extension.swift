@@ -93,3 +93,22 @@ extension Dictionary where Key == String, Value == Any {
     }
     
 }
+
+
+// MARK: - Compacted
+extension Dictionary where Value == Any? {
+    
+    public var compacted: [Key : Any] {
+        var compactedItems: [Key : Any] = [:]
+        self.forEach {
+            guard let value = $0.value else { return }
+            compactedItems[$0.key] = value
+        }
+        return compactedItems
+    }
+    
+    public mutating func compact() {
+        self = self.compacted
+    }
+    
+}

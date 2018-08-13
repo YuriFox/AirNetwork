@@ -10,87 +10,97 @@
 
 import Foundation
 
-infix operator <<<
-
 public protocol JSONDecodable {
-    
     init?(json: JSON)
-    
 }
 
-public func <<< <T: JSONDecodable>(lhs: inout T, rhs: JSON) {
-    guard let newValue = T.init(json: rhs) else {
-        assert(true, "Can't init object with json")
-        return
-    }
-    
-    lhs = newValue
+public protocol JSONDefaultDecodable: JSONDecodable {
+    static var defaultValue: Self { get }
 }
 
-public func <<< <T: JSONDecodable>(lhs: inout T?, rhs: JSON) {
-    lhs = T.init(json: rhs)
+prefix operator ~
+prefix operator ≈
+
+public prefix func ~ <T: JSONDecodable>(rhs: JSON) -> T? {
+    return T(json: rhs)
 }
 
-extension Int: JSONDecodable {
+public prefix func ≈ <T: JSONDefaultDecodable>(rhs: JSON) -> T {
+    return T(json: rhs) ?? T.defaultValue
+}
+
+extension Int: JSONDefaultDecodable {
     
     public init?(json: JSON) {
         guard let int = json.int else { return nil }
         self = int
     }
     
+    public static var defaultValue: Int { return 0 }
 }
 
-extension Float: JSONDecodable {
+extension Float: JSONDefaultDecodable {
     
     public init?(json: JSON) {
         guard let float = json.float else { return nil }
         self = float
     }
     
+    public static var defaultValue: Float { return 0 }
 }
 
-extension Double: JSONDecodable {
+extension Double: JSONDefaultDecodable {
     
     public init?(json: JSON) {
         guard let double = json.double else { return nil }
         self = double
     }
     
+    public static var defaultValue: Double { return 0 }
+    
 }
 
-extension String: JSONDecodable {
+extension String: JSONDefaultDecodable {
     
     public init?(json: JSON) {
         guard let string = json.string else { return nil }
         self = string
     }
     
+    public static var defaultValue: String { return "" }
+    
 }
 
-extension Bool: JSONDecodable {
+extension Bool: JSONDefaultDecodable {
     
     public init?(json: JSON) {
         guard let bool = json.bool else { return nil }
         self = bool
     }
     
+    public static var defaultValue: Bool { return false }
+    
 }
 
-extension Array: JSONDecodable where Element: JSONDecodable {
+extension Array: JSONDefaultDecodable where Element: JSONDecodable {
     
     public init?(json: JSON) {
         guard let array = json.arrayObject else { return nil }
         self = array as! [Element]
     }
     
+    public static var defaultValue: Array { return [] }
+    
 }
 
-extension Dictionary: JSONDecodable {
+extension Dictionary: JSONDefaultDecodable {
     
     public init?(json: JSON) {
-        guard let dictionary = json.dictionary else { return nil }
+        guard let dictionary = json.dictionaryObject else { return nil }
         self = dictionary as! [Key: Value]
     }
+    
+    public static var defaultValue: Dictionary { return [:] }
     
 }
 

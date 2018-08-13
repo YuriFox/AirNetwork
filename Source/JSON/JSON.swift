@@ -43,7 +43,7 @@ public struct JSON {
         get {
             switch self.rawType {
             case .array:
-                return self.rawType
+                return self.rawArray
             case .dictionary:
                 return self.rawDictionary
             case .number:
@@ -154,7 +154,24 @@ public extension JSON {
 // MARK: - Value (Dictionary)
 public extension JSON {
     
-    var dictionary: [String: Any]? {
+    var dictionary: [String: JSON]? {
+        guard self.rawType == .dictionary else { return nil }
+        
+        var dictionary: [String : JSON] = [:]
+        
+        for (key, value) in self.rawDictionary {
+            dictionary[key] = JSON(value)
+        }
+        
+        return dictionary
+        
+    }
+    
+    var dictionaryValue: [String: JSON] {
+        return self.dictionary ?? [:]
+    }
+    
+    var dictionaryObject: [String: Any]? {
         switch self.rawType {
         case .dictionary:
             return self.rawDictionary
@@ -163,8 +180,8 @@ public extension JSON {
         }
     }
     
-    public var dictionaryValue: [String: Any] {
-        return self.dictionary ?? [:]
+    public var dictionaryObjectValue: [String: Any] {
+        return self.dictionaryObject ?? [:]
     }
     
 }
@@ -311,6 +328,10 @@ public extension JSON {
 // MARK: - Value (Null)
 public extension JSON {
     
+    var isNull: Bool {
+        return self.rawType == .null
+    }
+    
     var null: NSNull? {
         return self.rawType == .null ? NSNull() : nil
     }
@@ -368,18 +389,114 @@ extension JSON: Equatable {
     
 }
 
-// MARK: - Data
+//// MARK: - Data
+//extension JSON {
+//
+//    public func jsonData(options:JSONSerialization.WritingOptions = .prettyPrinted) -> Data? {
+//        let object = self.object
+//        guard JSONSerialization.isValidJSONObject(object) else { return nil }
+//        return try? JSONSerialization.data(withJSONObject: object, options: options)
+//    }
+//
+//    public func jsonString(encoding: String.Encoding = .utf8, options:JSONSerialization.WritingOptions = .prettyPrinted) -> String? {
+//        guard let data = self.jsonData(options: options) else { return nil }
+//        return String(data: data, encoding: encoding)
+//    }
+//
+//}
+
 extension JSON {
+    
+//    // MARK: Functions that create JSON from objects
+//
+//    ///Maps an object that conforms to Mappable to a JSON dictionary <String, Any>
+//    public func toJSON(_ object: N) -> [String: Any] {
+//        var mutableObject = object
+//        let map = Map(mappingType: .toJSON, JSON: [:], context: context, shouldIncludeNilValues: shouldIncludeNilValues)
+//        mutableObject.mapping(map: map)
+//        return map.JSON
+//    }
+//
+//    ///Maps an array of Objects to an array of JSON dictionaries [[String: Any]]
+//    public func toJSONArray(_ array: [N]) -> [[String: Any]] {
+//        return array.map {
+//            // convert every element in array to JSON dictionary equivalent
+//            self.toJSON($0)
+//        }
+//    }
+//
+//    ///Maps a dictionary of Objects that conform to Mappable to a JSON dictionary of dictionaries.
+//    public func toJSONDictionary(_ dictionary: [String: N]) -> [String: [String: Any]] {
+//        return dictionary.map { (arg: (key: String, value: N)) in
+//            // convert every value in dictionary to its JSON dictionary equivalent
+//            return (arg.key, self.toJSON(arg.value))
+//        }
+//    }
+//
+//    ///Maps a dictionary of Objects that conform to Mappable to a JSON dictionary of dictionaries.
+//    public func toJSONDictionaryOfArrays(_ dictionary: [String: [N]]) -> [String: [[String: Any]]] {
+//        return dictionary.map { (arg: (key: String, value: [N])) in
+//            // convert every value (array) in dictionary to its JSON dictionary equivalent
+//            return (arg.key, self.toJSONArray(arg.value))
+//        }
+//    }
+//
+//    /// Maps an Object to a JSON string with option of pretty formatting
+//    public func toJSONString(_ object: N, prettyPrint: Bool = false) -> String? {
+//        let JSONDict = toJSON(object)
+//
+//        return Mapper.toJSONString(JSONDict as Any, prettyPrint: prettyPrint)
+//    }
+//
+//    /// Maps an array of Objects to a JSON string with option of pretty formatting
+//    public func toJSONString(_ array: [N], prettyPrint: Bool = false) -> String? {
+//        let JSONDict = toJSONArray(array)
+//
+//        return Mapper.toJSONString(JSONDict as Any, prettyPrint: prettyPrint)
+//    }
 
-    public func jsonData(options:JSONSerialization.WritingOptions = .prettyPrinted) -> Data? {
-        let object = self.object
-        guard JSONSerialization.isValidJSONObject(object) else { return nil }
-        return try? JSONSerialization.data(withJSONObject: object, options: options)
-    }
-
-    public func jsonString(encoding: String.Encoding = .utf8, options:JSONSerialization.WritingOptions = .prettyPrinted) -> String? {
+    /// Converts an Object to a JSON string with option of pretty formatting
+    public func jsonString(options: JSONSerialization.WritingOptions = .prettyPrinted, encoding: String.Encoding = .utf8) -> String? {
         guard let data = self.jsonData(options: options) else { return nil }
         return String(data: data, encoding: encoding)
     }
-
+    
+    /// Converts an JSON to JSON data with options
+    public func jsonData(options: JSONSerialization.WritingOptions) -> Data? {
+        
+        guard
+            let object = self.wrappedJSONObject,
+            JSONSerialization.isValidJSONObject(object)
+        else { return nil }
+        
+        do {
+            return try JSONSerialization.data(withJSONObject: object, options: options)
+        } catch {
+            print(error.localizedDescription)
+            return nil
+        }
+        
+    }
+    
+    private var wrappedJSONObject: Any? {
+        switch self.rawType {
+        case .dictionary:
+            var dict: [String : Any] = [:]
+            for (key, value) in self.dictionaryObjectValue {
+                guard let encodableValue = value as? JSONEncodable else { continue }
+                dict[key] = encodableValue.json.object
+            }
+            return JSON(dict).object
+            
+        case .array:
+            var arr: [Any] = []
+            for value in self.arrayObjectValue {
+                guard let encodableValue = value as? JSONEncodable else { continue }
+                arr.append(encodableValue.json.object)
+            }
+            return JSON(arr).object
+        default: return nil
+        }
+    }
+    
 }

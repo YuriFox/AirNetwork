@@ -15,7 +15,16 @@ open class ANManager: NSObject {
     public let domain: String
     
     /// Authorization header for all requests
-    public var authorization: ANAuthorization?
+    public var authorization: ANAuthorization? {
+        set {
+            self.session.configuration.httpAdditionalHeaders?[ANAuthorization.Key] = newValue?.description
+        }
+        get {
+            let headers = self.session.configuration.httpAdditionalHeaders
+            guard let a = headers?[ANAuthorization.Key] as? String else { return nil }
+            return ANAuthorization(string: a)
+        }
+    }
     
     /// Resumes the task immediately
     public var startRequestsImmediately: Bool = true
@@ -40,14 +49,14 @@ open class ANManager: NSObject {
     }
     
     open func request(path: String, method: ANRequest.Method) -> ANRequest {
-        var request = ANRequest(domain: self.domain, path: path, method: method)
-        
-        if let authorization = self.authorization {
-            request.headerFields[ANAuthorization.Key] = authorization.description
-        }
-        
-        return request
-        
+        return ANRequest(domain: self.domain, path: path, method: method)
+//
+//
+//        if let authorization = self.authorization {
+//            request.headerFields[ANAuthorization.Key] = authorization.description
+//        }
+//
+//        return request        
     }
     
     @discardableResult
@@ -106,7 +115,15 @@ extension ANManager: URLSessionDataDelegate {
         
         guard let task = self.task(task) else { return }
         self.debugLevel.printDescription(for: task)
-        task.completionHandler?(task.data, task.response, error)
+    
+        if let data = task.data, let response = task.response {
+            task.completionHandler?(.success((data, response)))
+        } else if let response = task.response {
+            task.completionHandler?(.success((nil, response)))
+        } else if let error = error {
+            task.completionHandler?(.error(error))
+        }
+        
         self.releaseTask(task)
         self.stopNetworkActivity()
         

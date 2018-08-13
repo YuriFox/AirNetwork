@@ -37,7 +37,7 @@ public class ANTask: NSObject {
     /// The underlying task.
     internal var task: URLSessionTask
     
-    init(task: URLSessionTask) {
+    internal init(task: URLSessionTask) {
         self.task = task
     }
     
@@ -81,38 +81,6 @@ public class ANTask: NSObject {
     public typealias ProgressHandler = (Float) -> Void
     
     /// A closure executed when task completed.
-    public typealias CompletionHandler = (Data?, HTTPURLResponse?, Error?) -> Void
-    
-}
-
-public enum ANTaskResult<S: Any, E: Any>: Hashable {
-    
-    case success(S)
-    case error(E)
-    
-    public var successValue: S? {
-        switch self {
-        case .success(let successValue): return successValue
-        case .error(_): return nil
-        }
-    }
-    
-    public var errorValue: E? {
-        switch self {
-        case .success(_): return nil
-        case .error(let errorValue): return errorValue
-        }
-    }
-    
-    public var hashValue: Int {
-        switch self {
-        case .success(_): return 1
-        case .error(_): return 0
-        }
-    }
-    
-    public static func == (lhs: ANTaskResult, rhs: ANTaskResult) -> Bool {
-        return lhs.hashValue == rhs.hashValue
-    }
+    public typealias CompletionHandler = (ANTaskResult<(Data?, HTTPURLResponse), Error>) -> Void
     
 }

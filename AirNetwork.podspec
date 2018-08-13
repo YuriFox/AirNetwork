@@ -5,7 +5,7 @@ Pod::Spec.new do |s|
   s.summary      = "Better way to deal with API and JSON"
 
   s.homepage     = "https://github.com/YuriFox/AirNetwork"
-  s.license      = { :type => "MIT", :file => "LICENSE" }
+  s.license      = { :type => "Apache-2.0", :file => "LICENSE" }
 
   s.author       = { "YuriFox" => "yuri17fox@gmail.com" }
   
@@ -13,6 +13,6 @@ Pod::Spec.new do |s|
 
   s.source       = { :git => "https://github.com/YuriFox/AirNetwork.git", :tag => s.version.to_s }
 
-  s.source_files = "Source/*.swift"
+  s.source_files = "Source/**/*.swift"
   
 end

@@ -82,7 +82,7 @@ extension Bool: JSONDefaultDecodable {
     
 }
 
-extension Array: JSONDefaultDecodable where Element: JSONDecodable {
+extension Array: JSONDefaultDecodable {
     
     public init?(json: JSON) {
         guard let array = json.arrayObject else { return nil }

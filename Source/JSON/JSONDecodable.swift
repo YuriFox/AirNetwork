@@ -6,8 +6,6 @@
 //  Copyright © 2018 Yuri Lysytsia. All rights reserved.
 //
 
-// typealias JSONCodable = JSONDecodable & JSONEncodable
-
 import Foundation
 
 public protocol JSONDecodable {
@@ -83,7 +81,7 @@ extension Bool: JSONDefaultDecodable {
 }
 
 extension Array: JSONDefaultDecodable {
-    
+
     public init?(json: JSON) {
         guard let array = json.arrayObject else { return nil }
         self = array as! [Element]

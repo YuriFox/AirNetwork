@@ -8,6 +8,8 @@
 
 import Foundation
 
+typealias JSONCodable = JSONEncodable & JSONDecodable
+
 public struct JSON {
     
     public private(set) var rawType: JSONType = .null

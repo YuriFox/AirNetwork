@@ -31,7 +31,7 @@ public struct ANRequest: Hashable, CustomStringConvertible {
     /// A dictionary containing all the HTTP header fields of the receiver.
     public var headerFields: [String : String] = [:]
     
-    /// This data is sent as the message body of the request.
+    /// Data sent as the body of the request message. It is only supported for queries with POST, PUT, PATCH.
     public var body: Body?
     
     /// The timeout interval specifies the limit on the idle. Defaults to 60.0
@@ -111,65 +111,21 @@ public extension ANRequest {
     public struct Body {
         
         public private(set) var contentType: ContentType
-        public var items: Any
+        public var items: JSONEncodable
         
-        public init(contentType: ContentType, items: Any = NSNull()) {
+        /// The data sent as the message body of the request.
+        ///
+        /// - Parameters:
+        ///   - contentType: Data type for request body
+        ///   - items: Data for request body.
+        /// - Note: Depending on the contentType, it is recommended to use data with types:
+        /// - text: String, Number or Bool.
+        /// - json: [String : Any] or [Any].
+        /// - urlEncoded: the same as json.
+        /// - multipart: [String: Any] or [String : ANMultipartFile]
+        public init(contentType: ContentType, items: JSONEncodable) {
             self.contentType = contentType
             self.items = items
-        }
-        
-    }
-    
-}
-
-// MARK: - MultipartFile
-public extension ANRequest {
-    
-    public struct MultipartFile {
-        
-        public private(set) var name: String
-        public private(set) var data: Data
-        public private(set) var mimeType: String
-        public var bodyItems: [String : Any] = [:]
-        
-        private init(name: String, data: Data, mimeType: String) {
-            self.name = name
-            self.data = data
-            self.mimeType = mimeType
-        }
-        
-        private static var uniqueName: String {
-            return UUID().uuidString
-        }
-        
-        public init?(text: String, name: String? = nil) {
-            guard let data = text.data(using: .utf8) else { return nil }
-            let name = name ?? MultipartFile.uniqueName
-            self.init(name: name, data: data, mimeType: "text/plain")
-        }
-        
-        public init?(json: [String : Any], name: String? = nil) {
-            guard let data = json.jsonData else { return nil }
-            let name = name ?? MultipartFile.uniqueName
-            self.init(name: name, data: data, mimeType: "application/json")
-        }
-        
-        public init?(imageJPEG: UIImage, quality: CGFloat = 1, name: String? = nil) {
-            guard let data = UIImageJPEGRepresentation(imageJPEG, quality) else { return nil }
-            let name = "\(name ?? MultipartFile.uniqueName).jpeg"
-            self.init(name: name, data: data, mimeType: "image/jpeg")
-        }
-        
-        public init?(imagePNG: UIImage, name: String? = nil) {
-            guard let data = UIImagePNGRepresentation(imagePNG) else { return nil }
-            let name = "\(name ?? MultipartFile.uniqueName).png"
-            self.init(name: name, data: data, mimeType: "image/png")
-        }
-        
-        public init?(videoMOV url: URL, name: String? = nil) {
-            guard let data = try? Data(contentsOf: url, options: []) else { return nil }
-            let name = "\(name ?? MultipartFile.uniqueName).mov"
-            self.init(name: name, data: data, mimeType: "video/mov")
         }
         
     }
@@ -188,9 +144,10 @@ extension URL {
         }
         
         components.queryItems = queryItems
-        // TODO
-        guard let link = components.string else { return nil }
-        self.init(string: link)
+        
+        guard let url = components.url else { return nil }
+        self = url
+
     }
     
     fileprivate init?(url: URL, queryItems: [URLQueryItem]? = nil) {
@@ -223,51 +180,24 @@ extension URLRequest {
         
         switch body.contentType {
         case .text:
-            let text = String.init(describing: body.items)
+            let text = String(describing: body.items.json.object)
             self.setValue(body.contentType.rawValue, forHTTPHeaderField: ANRequest.ContentType.key)
             self.httpBody = text.data(using: .utf8)
+            
         case .json:
-            guard let items = body.items as? [String : Any] else {
-                fatalError("\(#file) \(#function) json content type has to use 'bodyItems' is '[String : Any]'")
-            }
             self.setValue(body.contentType.rawValue, forHTTPHeaderField: ANRequest.ContentType.key)
-            self.httpBody = items.jsonData
+            self.httpBody = body.items.json.jsonData(options: .prettyPrinted)
             
         case .urlEncoded:
-            guard let items = body.items as? [String : Any] else {
-                fatalError("\(#file) \(#function) urlEncoded content type has to use 'bodyItems' is '[String : Any]'")
-            }
             self.setValue(body.contentType.rawValue, forHTTPHeaderField: ANRequest.ContentType.key)
-            self.httpBody = items.urlEncodedData
+            self.httpBody = body.items.json.urlEncodedData
             
         case .multipart:
             
             let boundary = "Boundary-\(UUID().uuidString)"
             let contentTypeValue = "\(body.contentType.rawValue); boundary=\(boundary)"
             self.setValue(contentTypeValue, forHTTPHeaderField: ANRequest.ContentType.key)
-            
-            var bodyData = Data()
-            
-            if let items = body.items as? [String : ANRequest.MultipartFile] {
-                
-                items.forEach { (key, file) in
-                    bodyData.append(multipartFile: file, forKey: key, boundary: boundary)
-                }
-                
-            } else if let items = body.items as? [String : [ANRequest.MultipartFile]] {
-                
-                items.forEach { (key, files) in
-                    files.forEach { (file) in
-                        bodyData.append(multipartFile: file, forKey: key, boundary: boundary)
-                    }
-                }
-                
-            } else {
-                fatalError("\(#file) \(#function) multipart content type has to use 'bodyItems' is '[String : YFMultipartFile]' or '[String : [YFMultipartFile]]'")
-            }
-            
-            bodyData.append(string: "--\(boundary)--\r\n")
-            self.httpBody = bodyData
+            self.httpBody = body.items.json.multipartData(boundary: boundary)
             
         }
         

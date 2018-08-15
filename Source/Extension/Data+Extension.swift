@@ -14,17 +14,20 @@ extension Data {
         guard let data = string.data(using: .utf8) else { return }
         self.append(data)
     }
-    
-    mutating func append(multipartFile file: ANRequest.MultipartFile, forKey key: String, boundary: String) {
-        
-        for (key, value) in file.bodyItems {
-            self.append(string: "--\(boundary)\r\n")
-            self.append(string: "Content-Disposition: form-data; name=\"\(key)\"\r\n\r\n")
-            self.append(string: "\(value)\r\n")
-        }
-        
+
+    mutating func append(value: Any, forKey key: String, boundary: String) {
         self.append(string: "--\(boundary)\r\n")
-        self.append(string: "Content-Disposition: form-data; name=\"\(key)\"; filename=\"\(file.name)\"\r\n")
+        self.append(string: "Content-Disposition: form-data; name=\"\(key)\"\r\n\r\n")
+        self.append(string: "\(value)\r\n")
+    }
+    
+    mutating func append(file: ANMultipartFile, forKey key: String, boundary: String) {
+        self.append(string: "--\(boundary)\r\n")
+        if let filename = file.name {
+            self.append(string: "Content-Disposition: form-data; name=\"\(key)\"; filename=\"\(filename)\"\r\n")
+        } else {
+            self.append(string: "Content-Disposition: form-data; name=\"\(key)\"\r\n")
+        }
         self.append(string: "Content-Type: \(file.mimeType)\r\n\r\n")
         self.append(file.data)
         self.append(string: "\r\n")

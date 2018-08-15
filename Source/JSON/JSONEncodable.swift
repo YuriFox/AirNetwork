@@ -39,7 +39,7 @@ extension Bool: JSONEncodable {
         return JSON(self)
     }
 }
-extension Array: JSONEncodable where Element: JSONEncodable {
+extension Array: JSONEncodable {
     public var json: JSON {
         return JSON(self)
     }

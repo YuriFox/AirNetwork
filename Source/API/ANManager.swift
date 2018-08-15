@@ -50,17 +50,10 @@ open class ANManager: NSObject {
     
     open func request(path: String, method: ANRequest.Method) -> ANRequest {
         return ANRequest(domain: self.domain, path: path, method: method)
-//
-//
-//        if let authorization = self.authorization {
-//            request.headerFields[ANAuthorization.Key] = authorization.description
-//        }
-//
-//        return request        
     }
     
     @discardableResult
-    open func dataTask(with request: ANRequest) -> ANTask {
+    public func dataTask(with request: ANRequest) -> ANTask {
         guard let urlRequest = URLRequest(request: request) else {
             fatalError("\(self) \(#function) \(#line) invalid YFNetworkRequest")
         }

@@ -22,7 +22,11 @@ public struct ANRequest: Hashable, CustomStringConvertible {
     public var queryItems: [String : Any] = [:]
     
     public var url: URL? {
-        return URL(domain: self.domain, path: self.path, queryItems: queryItems.queryItems)
+        let queryItems: [URLQueryItem]? = {
+            let items = self.queryItems.queryItems
+            return items.isEmpty ? nil : items
+        }()
+        return URL(domain: self.domain, path: self.path, queryItems: queryItems)
     }
     
     /// The HTTP request method of the receiver.

@@ -13,7 +13,7 @@ public struct ANMultipartFile: JSONEncodable {
     public private(set) var name: String?
     public private(set) var data: Data
     public private(set) var mimeType: String
-
+    
     public var json: JSON {
         return JSON(self)
     }

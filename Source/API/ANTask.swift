@@ -81,6 +81,6 @@ public class ANTask: NSObject {
     public typealias ProgressHandler = (Float) -> Void
     
     /// A closure executed when task completed.
-    public typealias CompletionHandler = (ANTaskResult<(Data?, HTTPURLResponse), Error>) -> Void
+    public typealias CompletionHandler = (ANTaskResult<(data: Data?, response: HTTPURLResponse), Error>) -> Void
     
 }

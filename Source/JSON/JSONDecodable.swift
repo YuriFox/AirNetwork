@@ -81,13 +81,22 @@ extension Bool: JSONDefaultDecodable {
 }
 
 extension Array: JSONDefaultDecodable {
-
+    
     public init?(json: JSON) {
         guard let array = json.arrayObject else { return nil }
-        self = array as! [Element]
+        self = array.compactMap { $0 as? Element }
     }
     
     public static var defaultValue: Array { return [] }
+    
+}
+
+extension Array where Element: JSONDecodable {
+    
+    public init?(json: JSON) {
+        guard let array = json.array else { return nil }
+        self = array.compactMap { Element.init(json: $0) }
+    }
     
 }
 
@@ -95,7 +104,29 @@ extension Dictionary: JSONDefaultDecodable {
     
     public init?(json: JSON) {
         guard let dictionary = json.dictionaryObject else { return nil }
-        self = dictionary as! [Key: Value]
+        self = {
+            var temp: [Key : Value] = [:]
+            dictionary.forEach {
+                if let key = $0.key as? Key, let value = $0.value as? Value {
+                    temp[key] = value
+                }
+            }
+            return temp
+        }()
+    }
+    
+    public static var defaultValue: Dictionary { return [:] }
+    
+}
+extension Dictionary where Key == String, Value: JSONDecodable {
+    
+    public init?(json: JSON) {
+        guard let dictionary = json.dictionary else { return nil }
+        self = {
+            var temp: [Key : Value] = [:]
+            dictionary.forEach { temp[$0.key] = Value.init(json: $0.value) }
+            return temp
+        }()
     }
     
     public static var defaultValue: Dictionary { return [:] }

@@ -1,1 +1,7 @@
 // Add StringEncoding as URLENCODING
+
+// ANTaskResult CLASS or STRUCT above ENUM
+// ANTaskResult as CLASS or STRUCT with func parse(smthParameters?) throws -> SMTH where: 
+// - SMTH is Data, JSON, etc.
+// - smthParameters is ???
+// - throw is ANTaskKError

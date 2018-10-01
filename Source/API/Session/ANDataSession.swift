@@ -9,8 +9,6 @@
 import class Foundation.NSURLSession
 
 public class ANDataSession: ANSession<ANDataTask>, URLSessionDataDelegate {
- 
-    private lazy var session = URLSession(configuration: .default, delegate: self, delegateQueue: .main)
     
     internal override func task(with request: ANRequest) -> ANTask {
         guard let urlRequest = URLRequest(request: request) else {
@@ -42,7 +40,6 @@ public class ANDataSession: ANSession<ANDataTask>, URLSessionDataDelegate {
         
         guard let sessionTask = self.task(task) else { return }
         
-        //        self.debugLevel.printDescription(for: task)
         if let data = sessionTask.data, let response = sessionTask.response {
             sessionTask.completionHandler?(.success((data, response)))
         } else if let response = sessionTask.response {
@@ -52,7 +49,6 @@ public class ANDataSession: ANSession<ANDataTask>, URLSessionDataDelegate {
         }
         
         self.releaseTask(sessionTask)
-        //        self.stopNetworkActivity()
         
     }
     

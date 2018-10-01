@@ -1,3 +1,6 @@
+=== v1.2.1 ===
+- Refactored ANSession
+
 === v1.2 ===
 - Replaced ANSession to ANDataSession and ANDownloadSession
 - Replaced ANTask to ANDataTask and ANDownloadTask

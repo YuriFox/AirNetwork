@@ -8,9 +8,11 @@
 
 import class Foundation.NSURLSession
 
-public class ANSession<Task: ANTask>: NSObject {
+public class ANSession<Task: ANTask>: NSObject, URLSessionTaskDelegate {
 
     public internal(set) var tasks: Set<Task> = []
+    
+    internal lazy var session = URLSession(configuration: .default, delegate: self, delegateQueue: .main)
     
     internal func task(with request: ANRequest) -> ANTask {
         fatalError("\(#function) need implementation")

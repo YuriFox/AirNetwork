@@ -10,8 +10,6 @@ import class Foundation.NSURLSession
 
 public class ANDownloadSession: ANSession<ANDownloadTask>, URLSessionDownloadDelegate {
     
-    private lazy var session = URLSession(configuration: .default, delegate: self, delegateQueue: .main)
-    
     internal override func task(with request: ANRequest) -> ANTask {
         guard let urlRequest = URLRequest(request: request) else {
             fatalError("\(self) \(#function) \(#line) invalid YFNetworkRequest")

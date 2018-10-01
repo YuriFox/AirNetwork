@@ -2,11 +2,11 @@
 //  ANTask.swift
 //  AirNetwork
 //
-//  Created by Yuri Fox on 02.08.2018.
+//  Created by Yuri Fox on 10/1/18.
 //  Copyright © 2018 Yuri Lysytsia. All rights reserved.
 //
 
-import Foundation
+import class Foundation.NSURLSession
 
 public class ANTask: NSObject {
     
@@ -14,10 +14,10 @@ public class ANTask: NSObject {
     public var request: URLRequest? { return task.originalRequest }
     
     /// The response received from the task.
-    public var response: HTTPURLResponse? { return task.response as? HTTPURLResponse }
+    public var response: URLResponse? { return task.response }
     
-    /// Received data from the task.
-    public var data: Data?
+    /// The HTTP response received from the task.
+    public var httpResponse: HTTPURLResponse? { return self.response as? HTTPURLResponse }
     
     /// The current state of the task.
     public var state: URLSessionTask.State {
@@ -31,35 +31,12 @@ public class ANTask: NSObject {
         return downloaded/length
     }
     
-    internal var completionHandler: CompletionHandler?
     internal var progressHandler: ProgressHandler?
     
-    /// The underlying task.
     internal var task: URLSessionTask
     
-    internal init(task: URLSessionTask) {
+    public init(task: URLSessionTask) {
         self.task = task
-    }
-    
-    /// Add completion handler of a task.
-    ///
-    /// - Parameter handler: A closure executed when task completed.
-    /// - Returns: This task
-    @discardableResult
-    public func completion(handler: @escaping CompletionHandler) -> Self {
-        self.completionHandler = handler
-        return self
-    }
-    
-    /// Add progress handler of a task.
-    ///
-    /// - Parameters:
-    ///   - handler: A closure executed when monitoring progress of a task.
-    /// - Returns: This task.
-    @discardableResult
-    public func progress(handler: @escaping ProgressHandler) -> Self {
-        self.progressHandler = handler
-        return self
     }
     
     /// Resumes the task, if it is suspended.
@@ -77,10 +54,18 @@ public class ANTask: NSObject {
         self.task.cancel()
     }
     
+    /// Add progress handler of a task.
+    ///
+    /// - Parameters:
+    ///   - handler: A closure executed when monitoring progress of a task.
+    /// - Returns: This task.
+    public func progress(handler: @escaping ProgressHandler) -> Self {
+        self.progressHandler = handler
+        return self
+    }
+    
     /// A closure executed when monitoring progress of a task.
     public typealias ProgressHandler = (Float) -> Void
-    
-    /// A closure executed when task completed.
-    public typealias CompletionHandler = (ANTaskResult<(data: Data?, response: HTTPURLResponse), Error>) -> Void
+
     
 }

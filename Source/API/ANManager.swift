@@ -15,16 +15,7 @@ open class ANManager: NSObject {
     public let domain: String
     
     /// Authorization header for all requests
-    public var authorization: ANAuthorization? {
-        set {
-            self.session.configuration.httpAdditionalHeaders?[ANAuthorization.Key] = newValue?.description
-        }
-        get {
-            let headers = self.session.configuration.httpAdditionalHeaders
-            guard let a = headers?[ANAuthorization.Key] as? String else { return nil }
-            return ANAuthorization(string: a)
-        }
-    }
+    public var authorization: ANAuthorization?
     
     /// Resumes the task immediately
     public var startRequestsImmediately: Bool = true
@@ -32,16 +23,10 @@ open class ANManager: NSObject {
     /// Logs for all request
     public var debugLevel: ANDebugLevel = .none
     
-    /// URLSession for data task
-    public private(set) lazy var session: URLSession = {
-        let configuration = URLSessionConfiguration.default
-        configuration.httpAdditionalHeaders?["User-Agent"] = String.headerFieldUserAgent
-        configuration.httpAdditionalHeaders?["Accept-Language"] = Locale.current.languageCode
-        return URLSession(configuration: configuration, delegate: self, delegateQueue: .main)
-    }()
-    
-    internal var tasks: Set<ANTask> = []
     internal var networkActivitiesCount: Int = 0
+    
+    private var dataSession = ANDataSession()
+    private var downloadSession = ANDownloadSession()
     
     /// Create manager with domain
     public init(domain: String) {
@@ -49,77 +34,43 @@ open class ANManager: NSObject {
     }
     
     open func request(path: String, method: ANRequest.Method) -> ANRequest {
-        return ANRequest(domain: self.domain, path: path, method: method)
+        var request = ANRequest(domain: self.domain, path: path, method: method)
+        request.headerFields["User-Agent"] = String.headerFieldUserAgent
+        request.headerFields["Accept-Language"] = Locale.current.languageCode
+        request.headerFields[ANAuthorization.Key] = self.authorization?.description
+        return request
+    }
+
+    @discardableResult
+    open func dataTask(with request: ANRequest) -> ANTask {
+        self.debugLevel.printDescription(for: request)
+        self.startNetworkActivity()
+        let dataTask = self.dataSession.task(with: request)
+        
+        if self.startRequestsImmediately {
+            dataTask.resume()
+        }
+        
+        return dataTask
+        
     }
     
     @discardableResult
-    public func dataTask(with request: ANRequest) -> ANTask {
-        guard let urlRequest = URLRequest(request: request) else {
-            fatalError("\(self) \(#function) \(#line) invalid YFNetworkRequest")
-        }
-        
+    open func downloadTask(with request: ANRequest) -> ANTask {
         self.debugLevel.printDescription(for: request)
-        
         self.startNetworkActivity()
-        let dataTask = self.session.dataTask(with: urlRequest)
-        let task = ANTask(task: dataTask)
-        self.tasks.insert(task)
+        let dataTask = self.downloadSession.task(with: request)
         
         if self.startRequestsImmediately {
-            task.resume()
+            dataTask.resume()
         }
         
-        return task
+        return dataTask
         
-    }
-    
-    private func task(_ dataTask: URLSessionTask) -> ANTask? {
-        return self.tasks.first { $0.task == dataTask }
-    }
-    
-    private func releaseTask(_ task: ANTask) {
-        self.tasks.remove(task)
     }
     
     deinit {
         print("\(self) deinited")
-    }
-    
-}
-
-// MARK: - URLSessionTaskDelegate
-extension ANManager: URLSessionDataDelegate {
-    
-    public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
-        
-        guard let task = self.task(dataTask) else { return }
-        
-        if task.data != nil {
-            task.data?.append(data)
-        } else {
-            task.data = data
-        }
-        
-        task.progressHandler?(task.progress)
-        
-    }
-    
-    public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
-        
-        guard let task = self.task(task) else { return }
-        self.debugLevel.printDescription(for: task)
-    
-        if let data = task.data, let response = task.response {
-            task.completionHandler?(.success((data, response)))
-        } else if let response = task.response {
-            task.completionHandler?(.success((nil, response)))
-        } else if let error = error {
-            task.completionHandler?(.error(error))
-        }
-        
-        self.releaseTask(task)
-        self.stopNetworkActivity()
-        
     }
     
 }
@@ -152,7 +103,7 @@ extension ANManager {
 }
 
 // MARK: - String + Extension
-fileprivate extension String {
+internal extension String {
     
     static var headerFieldUserAgent: String {
         let title = String(describing: ANManager.self)

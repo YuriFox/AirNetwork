@@ -1,3 +1,6 @@
+// Create UPLOAD task
+// Refactor DATA, DOWNLOAD
+
 // Add StringEncoding as URLENCODING
 
 // ANTaskResult CLASS or STRUCT above ENUM

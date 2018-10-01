@@ -1,3 +1,7 @@
+=== v1.2 ===
+- Replaced ANSession to ANDataSession and ANDownloadSession
+- Replaced ANTask to ANDataTask and ANDownloadTask
+
 === v1.1.3 ===
 - Fixed Array JSONDecodable init(json:). Now it's available for any class
 

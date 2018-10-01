@@ -50,13 +50,13 @@ public enum ANDebugLevel: Int, CustomStringConvertible {
         guard self == .all || self == .response else { return }
         
         print("===> RESPONSE(\(task.request?.url?.absoluteString ?? "-"))")
-        if let response = task.response {
+        if let response = task.httpResponse {
             print("\(response.statusCode) \(HTTPURLResponse.localizedString(forStatusCode: response.statusCode))")
             print("\(response.allHeaderFields.map { "\($0.key): \($0.value)\n" }.joined())")
             print("\n")
         }
         
-        if let data = task.data {
+        if let data = (task as? ANDataTask)?.data {
             let jsonString = String(data: data, encoding: .utf8)
             print(jsonString ?? "{ }")
         }

@@ -11,25 +11,26 @@ import UIKit.UIApplication
 
 open class ANManager: NSObject {
     
-    /// Default request domain
+    /// Default request domain.
     public let domain: String
     
-    /// Authorization header for all requests
+    /// Default session for tasks.
+    public let session: ANSession
+    
+    /// Authorization header for all requests.
     public var authorization: ANAuthorization?
     
-    /// Resumes the task immediately
+    /// Resumes the task immediately.
     public var startRequestsImmediately: Bool = true
     
-    /// Logs for all request
+    /// Logs for all request.
     public var debugLevel: ANDebugLevel = .none
     
     internal var networkActivitiesCount: Int = 0
     
-    private var dataSession = ANDataSession()
-    private var downloadSession = ANDownloadSession()
-    
-    /// Create manager with domain
-    public init(domain: String) {
+    /// Create manager with domain.
+    public init(session: ANSession, domain: String) {
+        self.session = session
         self.domain = domain
     }
     
@@ -41,36 +42,27 @@ open class ANManager: NSObject {
         return request
     }
 
-    @discardableResult
-    open func dataTask(with request: ANRequest) -> ANTask {
-        self.debugLevel.printDescription(for: request)
+    private func resumeTaskIfNeeded(_ task: ANTask) {
         self.startNetworkActivity()
-        let dataTask = self.dataSession.task(with: request)
-        
         if self.startRequestsImmediately {
-            dataTask.resume()
+            task.resume()
         }
-        
-        return dataTask
-        
     }
     
     @discardableResult
-    open func downloadTask(with request: ANRequest) -> ANTask {
+    open func dataTask(with request: ANRequest) -> ANDataTask {
+        let dataTask = self.session.dataTask(with: request)
         self.debugLevel.printDescription(for: request)
-        self.startNetworkActivity()
-        let dataTask = self.downloadSession.task(with: request)
-        
-        if self.startRequestsImmediately {
-            dataTask.resume()
-        }
-        
+        self.resumeTaskIfNeeded(dataTask)
         return dataTask
-        
     }
     
-    deinit {
-        print("\(self) deinited")
+    @discardableResult
+    open func downloadTask(with request: ANRequest) -> ANDownloadTask {
+        let downloadTask = self.session.downloadTask(with: request)
+        self.debugLevel.printDescription(for: request)
+        self.resumeTaskIfNeeded(downloadTask)
+        return downloadTask
     }
     
 }
@@ -78,14 +70,14 @@ open class ANManager: NSObject {
 // MARK: - Network Activity
 extension ANManager {
     
-    func startNetworkActivity() {
+    internal func startNetworkActivity() {
         self.networkActivitiesCount += 1
         DispatchQueue.main.async {
             UIApplication.shared.isNetworkActivityIndicatorVisible = true
         }
     }
     
-    func stopNetworkActivity() {
+    internal func stopNetworkActivity() {
         if self.networkActivitiesCount < 1 {
             return
         }

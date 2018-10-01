@@ -70,7 +70,7 @@ public struct ANRequest: Hashable, CustomStringConvertible {
     /// Creates GET request with url
     ///
     /// - Parameter url: The URL for the request.
-    init(url: URL) {
+    public init(url: URL) {
         self.init(domain: url.domain, path: url.path, method: .GET)
     }
     

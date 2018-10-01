@@ -19,6 +19,7 @@ public class ANDownloadTask: ANTask {
     ///
     /// - Parameter handler: A closure executed when task completed.
     /// - Returns: This task
+    @discardableResult
     public func completion(handler: @escaping CompletionHandler) -> Self {
         self.completionHandler = handler
         return self

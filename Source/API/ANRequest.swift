@@ -60,11 +60,18 @@ public struct ANRequest: Hashable, CustomStringConvertible {
     }
     
     /// Creates request with the given path and method.
-    /// - parameter: path The URL for the request.
+    /// - parameter path: The URL for the request.
     public init(domain: String, path: String, method: Method) {
         self.domain = domain
         self.path = path
         self.method = method
+    }
+    
+    /// Creates GET request with url
+    ///
+    /// - Parameter url: The URL for the request.
+    init(url: URL) {
+        self.init(domain: url.domain, path: url.path, method: .GET)
     }
     
     public static func == (lhs: ANRequest, rhs: ANRequest) -> Bool {
@@ -205,6 +212,14 @@ extension URLRequest {
             
         }
         
+    }
+    
+}
+
+fileprivate extension URL {
+    
+    var domain: String {
+        return self.absoluteString.replacingOccurrences(of: self.path, with: "")
     }
     
 }

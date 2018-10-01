@@ -10,7 +10,7 @@ import class Foundation.NSURLSession
 
 public class ANDataSession: ANSession<ANDataTask>, URLSessionDataDelegate {
     
-    internal override func task(with request: ANRequest) -> ANTask {
+    internal func task(with request: ANRequest) -> ANDataTask {
         guard let urlRequest = URLRequest(request: request) else {
             fatalError("\(self) \(#function) \(#line) invalid YFNetworkRequest")
         }
@@ -40,9 +40,9 @@ public class ANDataSession: ANSession<ANDataTask>, URLSessionDataDelegate {
         
         guard let sessionTask = self.task(task) else { return }
         
-        if let data = sessionTask.data, let response = sessionTask.response {
+        if let data = sessionTask.data, let response = sessionTask.httpResponse {
             sessionTask.completionHandler?(.success((data, response)))
-        } else if let response = sessionTask.response {
+        } else if let response = sessionTask.httpResponse {
             sessionTask.completionHandler?(.success((nil, response)))
         } else if let error = error {
             sessionTask.completionHandler?(.error(error))

@@ -19,12 +19,13 @@ public class ANDataTask: ANTask {
     ///
     /// - Parameter handler: A closure executed when task completed.
     /// - Returns: This task
+    @discardableResult
     public func completion(handler: @escaping CompletionHandler) -> Self {
         self.completionHandler = handler
         return self
     }
     
     /// A closure executed when task completed.
-    public typealias CompletionHandler = (ANTaskResult<(data: Data?, response: URLResponse?), Error>) -> Void
+    public typealias CompletionHandler = (ANTaskResult<(data: Data?, response: HTTPURLResponse), Error>) -> Void
     
 }

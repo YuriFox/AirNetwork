@@ -39,13 +39,14 @@ public struct ANMultipartFile: JSONEncodable {
     }
     
     public init?(imageJPEG: UIImage, quality: CGFloat = 1, name: String? = nil) {
-        guard let data = UIImageJPEGRepresentation(imageJPEG, quality) else { return nil }
+        
+        guard let data = imageJPEG.jpegData(compressionQuality: quality) else { return nil }
         let name = "\(name ?? ANMultipartFile.uniqueName).jpeg"
         self.init(name: name, data: data, mimeType: "image/jpeg")
     }
     
     public init?(imagePNG: UIImage, name: String? = nil) {
-        guard let data = UIImagePNGRepresentation(imagePNG) else { return nil }
+        guard let data = imagePNG.pngData() else { return nil }
         let name = "\(name ?? ANMultipartFile.uniqueName).png"
         self.init(name: name, data: data, mimeType: "image/png")
     }

@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
 
   s.name         = "AirNetwork"
-  s.version      = "1.2.1"
+  s.version      = "1.2.2"
   s.summary      = "Better way to deal with API and JSON"
 
   s.homepage     = "https://github.com/YuriFox/AirNetwork"

@@ -28,8 +28,8 @@ public enum ANDebugLevel: Int, CustomStringConvertible {
         guard self == .all || self == .request else { return }
         
         print("===> REQUEST")
-        print("\(request.method.rawValue) \(request.url?.absoluteString ?? "nil")")
-        print("\(request.headerFields.map { "\($0.key): \($0.value)\n" }.joined())")
+        print("\(request.method.rawValue) \(request.path)")
+        print("\(request.headerFields?.map { "\($0.key): \($0.value)\n" }.joined() ?? "NULL")")
         
         if let body = request.body {
             print("\(ANRequest.ContentType.key): \(body.contentType.rawValue)\n")

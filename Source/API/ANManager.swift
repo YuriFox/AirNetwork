@@ -35,10 +35,14 @@ open class ANManager: NSObject {
     }
     
     open func request(path: String, method: ANRequest.Method) -> ANRequest {
-        var request = ANRequest(domain: self.domain, path: path, method: method)
-        request.headerFields["User-Agent"] = String.headerFieldUserAgent
-        request.headerFields["Accept-Language"] = Locale.current.languageCode
-        request.headerFields[ANAuthorization.Key] = self.authorization?.description
+        var request = ANRequest(path: path, method: method)
+        
+        var headers = [String : String]()
+        headers["User-Agent"] = String.headerFieldUserAgent
+        headers["Accept-Language"] = Locale.current.languageCode
+        headers[ANAuthorization.Key] = self.authorization?.description
+        request.headerFields = headers
+        
         return request
     }
 
@@ -51,7 +55,8 @@ open class ANManager: NSObject {
     
     @discardableResult
     open func dataTask(with request: ANRequest) -> ANDataTask {
-        let dataTask = self.session.dataTask(with: request)
+        let urlRequest = self.request(request)
+        let dataTask = self.session.dataTask(with: urlRequest)
         self.debugLevel.printDescription(for: request)
         self.resumeTaskIfNeeded(dataTask)
         return dataTask
@@ -59,7 +64,8 @@ open class ANManager: NSObject {
     
     @discardableResult
     open func downloadTask(with request: ANRequest) -> ANDownloadTask {
-        let downloadTask = self.session.downloadTask(with: request)
+        let urlRequest = self.request(request)
+        let downloadTask = self.session.downloadTask(with: urlRequest)
         self.debugLevel.printDescription(for: request)
         self.resumeTaskIfNeeded(downloadTask)
         return downloadTask
@@ -142,6 +148,64 @@ internal extension String {
         }()
         
         return "\(executable)/\(appVersion) (\(bundle); build:\(appBuild); \(osNameVersion)) \(senderVersion)"
+        
+    }
+    
+}
+
+// MARK: - Request
+extension ANManager {
+    
+    private func url(path: String, queryItems: [String : Any]?) -> URL? {
+        guard var urlComponents = URLComponents(string: self.domain) else {
+            fatalError("ANManager.URLComponents can't initialize because domain(\(self.domain)) isn't valid")
+        }
+        urlComponents.path = path
+        urlComponents.queryItems = queryItems?.queryItems
+        return urlComponents.url
+    }
+    
+    
+    private func request(_ request: ANRequest) -> URLRequest {
+        guard let url = self.url(path: request.path, queryItems: request.queryItems) else {
+            fatalError("ANManager.URLRequest can't initialize url for  domain(\(self.domain)) path(\(request.path))")
+        }
+        
+        var urlRequest = URLRequest(url: url, timeoutInterval: request.timeoutInterval)
+        urlRequest.allowsCellularAccess = request.allowsCellularAccess
+        urlRequest.httpShouldHandleCookies = request.shouldHandleCookies
+        urlRequest.httpMethod = request.method.rawValue
+        urlRequest.allHTTPHeaderFields = request.headerFields
+        
+        guard let body = request.body else { return urlRequest }
+        
+        if !request.method.supportsBody {
+            debugPrint("ANManager.URLRequest can't add body because method(\(request.method.rawValue) doesn't support body)")
+            return urlRequest
+        }
+        
+        switch body.contentType {
+        case .text:
+            let text = String(describing: body.items.json.object)
+            urlRequest.setValue(body.contentType.rawValue, forHTTPHeaderField: ANRequest.ContentType.key)
+            urlRequest.httpBody = text.data(using: .utf8)
+            
+        case .json:
+            urlRequest.setValue(body.contentType.rawValue, forHTTPHeaderField: ANRequest.ContentType.key)
+            urlRequest.httpBody = body.items.json.jsonData(options: .prettyPrinted)
+            
+        case .urlEncoded:
+            urlRequest.setValue(body.contentType.rawValue, forHTTPHeaderField: ANRequest.ContentType.key)
+            urlRequest.httpBody = body.items.json.urlEncodedData
+            
+        case .multipart:
+            let boundary = "Boundary-\(UUID().uuidString)"
+            let contentTypeValue = "\(body.contentType.rawValue); boundary=\(boundary)"
+            urlRequest.setValue(contentTypeValue, forHTTPHeaderField: ANRequest.ContentType.key)
+            urlRequest.httpBody = body.items.json.multipartData(boundary: boundary)
+        }
+        
+        return urlRequest
         
     }
     

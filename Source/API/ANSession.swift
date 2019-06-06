@@ -28,28 +28,18 @@ public class ANSession: NSObject {
         self.tasks.remove(task)
     }
     
-    public func dataTask(with request: ANRequest) -> ANDataTask {
-        guard let urlRequest = URLRequest(request: request) else {
-            fatalError("\(self) \(#function) \(#line) invalid ANRequest")
-        }
-        
-        let dataTask = self.session.dataTask(with: urlRequest)
-        let task = ANDataTask.init(task: dataTask)
+    public func dataTask(with request: URLRequest) -> ANDataTask {
+        let dataTask = self.session.dataTask(with: request)
+        let task = ANDataTask(task: dataTask)
         self.tasks.insert(task)
         return task
-        
     }
     
-    public func downloadTask(with request: ANRequest) -> ANDownloadTask {
-        guard let urlRequest = URLRequest(request: request) else {
-            fatalError("\(self) \(#function) \(#line) invalid YFNetworkRequest")
-        }
-        
-        let downloadTask = self.session.downloadTask(with: urlRequest)
+    public func downloadTask(with request: URLRequest) -> ANDownloadTask {
+        let downloadTask = self.session.downloadTask(with: request)
         let task = ANDownloadTask(task: downloadTask)
         self.tasks.insert(task)
         return task
-        
     }
 
 }

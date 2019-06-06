@@ -1,6 +1,6 @@
 === v1.3 ===
 - Fixed multiple query items encoding
-- Refactoring
+- Code refactoring
 
 === v1.2.3 ===
 - ANDataSession and ANDownloadSession combined to ANSession

@@ -12,28 +12,17 @@ import struct UIKit.CGFloat
 
 public struct ANRequest: Hashable, CustomStringConvertible {
     
-    /// The URL domain subcomponent.
-    public var domain: String
+    /// The HTTP request method of the receiver.
+    public var method: Method
     
     /// The URL path subcomponent.
     public var path: String
     
     /// An array of query items for the URL query string.
-    public var queryItems: [String : Any] = [:]
-    
-    public var url: URL? {
-        let queryItems: [URLQueryItem]? = {
-            let items = self.queryItems.queryItems
-            return items.isEmpty ? nil : items
-        }()
-        return URL(domain: self.domain, path: self.path, queryItems: queryItems)
-    }
-    
-    /// The HTTP request method of the receiver.
-    public var method: Method
+    public var queryItems: [String : Any]?
     
     /// A dictionary containing all the HTTP header fields of the receiver.
-    public var headerFields: [String : String] = [:]
+    public var headerFields: [String : String]?
     
     /// Data sent as the body of the request message. It is only supported for queries with POST, PUT, PATCH.
     public var body: Body?
@@ -48,7 +37,6 @@ public struct ANRequest: Hashable, CustomStringConvertible {
     public var shouldHandleCookies: Bool = true
     
     public func hash(into hasher: inout Hasher) {
-        hasher.combine(self.domain)
         hasher.combine(self.path)
         hasher.combine(self.timeoutInterval)
         hasher.combine(self.allowsCellularAccess)
@@ -57,29 +45,21 @@ public struct ANRequest: Hashable, CustomStringConvertible {
     
     public var description: String {
         let method = self.method.rawValue
-        let url = self.domain + self.path
-        let hasHeader = !self.headerFields.isEmpty
+        let url = self.path
+        let hasHeader = self.headerFields?.isEmpty == false
         let hasBody = self.body != nil
         return "\(ANRequest.self): (\(method) \(url).\nHas header fields: \(hasHeader)\nHas body: \(hasBody))"
     }
     
     /// Creates request with the given path and method.
     /// - parameter path: The URL for the request.
-    public init(domain: String, path: String, method: Method) {
-        self.domain = domain
+    public init(path: String, method: Method) {
         self.path = path
         self.method = method
     }
     
-    /// Creates GET request with url
-    ///
-    /// - Parameter url: The URL for the request.
-    public init(url: URL) {
-        self.init(domain: url.domain, path: url.path, method: .get)
-    }
-    
     public static func == (lhs: ANRequest, rhs: ANRequest) -> Bool {
-        return lhs.hashValue == rhs.hashValue
+        return lhs.description == rhs.description
     }
     
 }
@@ -174,86 +154,6 @@ extension ANRequest {
             self.items = items
         }
         
-    }
-    
-}
-
-// MARK: - URL+Extesnion
-extension URL {
-    
-    fileprivate init?(domain: String, path: String? = nil, queryItems: [URLQueryItem]? = nil) {
-        
-        guard var components = URLComponents(string: domain) else { return nil }
-        
-        if let path = path {
-            components.path = path
-        }
-        
-        components.queryItems = queryItems
-        
-        guard let url = components.url else { return nil }
-        self = url
-
-    }
-    
-    fileprivate init?(url: URL, queryItems: [URLQueryItem]? = nil) {
-        guard var components = URLComponents(url: url, resolvingAgainstBaseURL: true) else { return nil }
-        components.queryItems = queryItems
-        guard let link = components.string else { return nil }
-        self.init(string: link)
-    }
-    
-}
-
-
-// MARK: - URLRequest+Extension
-extension URLRequest {
-    
-    init?(request: ANRequest) {
-        guard let url = request.url else { return nil }
-        
-        self.init(url: url, timeoutInterval: request.timeoutInterval)
-        self.allowsCellularAccess = request.allowsCellularAccess
-        self.httpShouldHandleCookies = request.shouldHandleCookies
-        
-        self.httpMethod = request.method.rawValue
-        
-        request.headerFields.forEach {
-            self.setValue($0.value, forHTTPHeaderField: $0.key)
-        }
-        
-        guard let body = request.body, request.method.supportsBody else { return }
-        
-        switch body.contentType {
-        case .text:
-            let text = String(describing: body.items.json.object)
-            self.setValue(body.contentType.rawValue, forHTTPHeaderField: ANRequest.ContentType.key)
-            self.httpBody = text.data(using: .utf8)
-            
-        case .json:
-            self.setValue(body.contentType.rawValue, forHTTPHeaderField: ANRequest.ContentType.key)
-            self.httpBody = body.items.json.jsonData(options: .prettyPrinted)
-            
-        case .urlEncoded:
-            self.setValue(body.contentType.rawValue, forHTTPHeaderField: ANRequest.ContentType.key)
-            self.httpBody = body.items.json.urlEncodedData
-            
-        case .multipart:
-            let boundary = "Boundary-\(UUID().uuidString)"
-            let contentTypeValue = "\(body.contentType.rawValue); boundary=\(boundary)"
-            self.setValue(contentTypeValue, forHTTPHeaderField: ANRequest.ContentType.key)
-            self.httpBody = body.items.json.multipartData(boundary: boundary)
-            
-        }
-        
-    }
-    
-}
-
-fileprivate extension URL {
-    
-    var domain: String {
-        return self.absoluteString.replacingOccurrences(of: self.path, with: "")
     }
     
 }

@@ -28,10 +28,6 @@ xcuserdata/
 *.dSYM.zip
 *.dSYM
 
-AirNetwork.xcodeproj/project.pbxproj
+#AirNetwork.xcodeproj/project.pbxproj
 AirNetwork.xcodeproj/project.xcworkspace/contents.xcworkspacedata
 AirNetwork.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
-Source/AirNetwork.h
-Source/Info.plist
-CHANGELOG
-TODO

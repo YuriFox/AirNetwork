@@ -417,8 +417,8 @@ extension JSON {
     
     /// Converts an JSON to URL encoded data
     internal var urlEncodedData: Data? {
-        guard let dict = self.wrappedJSONObject as? [String : Any] else { return nil }
-        return dict.urlEncodedData
+        let dict = self.wrappedJSONObject as? [String : Any]
+        return dict?.urlEncodedData(using: .utf8)
     }
     
     /// Converts an JSON to URL encoded data

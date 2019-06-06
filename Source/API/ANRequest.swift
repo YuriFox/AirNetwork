@@ -47,8 +47,12 @@ public struct ANRequest: Hashable, CustomStringConvertible {
     /// Should cookies will be sent with and set for this request.
     public var shouldHandleCookies: Bool = true
     
-    public var hashValue: Int {
-        return self.domain.hashValue ^ self.path.hashValue ^ timeoutInterval.hashValue ^ allowsCellularAccess.hashValue ^ self.shouldHandleCookies.hashValue
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(self.domain)
+        hasher.combine(self.path)
+        hasher.combine(self.timeoutInterval)
+        hasher.combine(self.allowsCellularAccess)
+        hasher.combine(self.shouldHandleCookies)
     }
     
     public var description: String {

@@ -33,13 +33,12 @@ public struct ANMultipartFile: JSONEncodable {
         self.init(name: nil, data: data, mimeType: "application/json")
     }
     
-    public init?(urlEncoded: [String : Any]) {
-        guard let data = urlEncoded.urlEncodedData else { return nil }
+    public init?(urlEncoded: [String : Any], using encoding: String.Encoding = .utf8) {
+        guard let data = urlEncoded.urlEncodedData(using: encoding) else { return nil }
         self.init(name: nil, data: data, mimeType: "application/x-www-form-urlencoded")
     }
     
     public init?(imageJPEG: UIImage, quality: CGFloat = 1, name: String? = nil) {
-        
         guard let data = imageJPEG.jpegData(compressionQuality: quality) else { return nil }
         let name = "\(name ?? ANMultipartFile.uniqueName).jpeg"
         self.init(name: name, data: data, mimeType: "image/jpeg")

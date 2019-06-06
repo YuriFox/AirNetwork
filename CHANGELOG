@@ -1,3 +1,6 @@
+=== v1.3 ===
+- Fixed multiple query items encoding
+
 === v1.2.3 ===
 - ANDataSession and ANDownloadSession combined to ANSession
 - Fixes after conversion to Swift 4.2

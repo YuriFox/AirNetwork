@@ -8,3 +8,14 @@
 // - SMTH is Data, JSON, etc.
 // - smthParameters is ???
 // - throw is ANTaskKError
+
+3. 
+
+4. Create ANLoadingIndicatorProtocol. ANRequest has property `loading indicator` which will connected to request. When request startted loading indicator started too.
+- var isLoading: Bool { set get }
+
+5. Task ID
+
+6. Transform as ObjectMapper
+
+7. README

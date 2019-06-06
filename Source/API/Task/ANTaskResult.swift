@@ -27,10 +27,10 @@ public enum ANTaskResult<S: Any, E: Any>: Hashable {
         }
     }
     
-    public var hashValue: Int {
+    public func hash(into hasher: inout Hasher) {
         switch self {
-        case .success(_): return 1
-        case .error(_): return 0
+        case .success(_): hasher.combine(1)
+        case .error(_): hasher.combine(-1)
         }
     }
     

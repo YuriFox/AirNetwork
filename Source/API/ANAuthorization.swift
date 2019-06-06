@@ -21,8 +21,8 @@ public struct ANAuthorization: Hashable, CustomStringConvertible {
         return "\(self.type.description) \(self.token)"
     }
     
-    public var hashValue: Int {
-        return self.description.hashValue
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(self.description)
     }
     
     public init(type: ANAuthorizationType, token: String) {

@@ -8,8 +8,6 @@
 
 import Foundation
 
-typealias JSONCodable = JSONEncodable & JSONDecodable
-
 public struct JSON {
     
     public private(set) var rawType: JSONType = .null
@@ -96,9 +94,9 @@ public enum JSONType: Int {
 }
 
 // MARK: - Subscript
-public extension JSON {
+extension JSON {
     
-    subscript(index: Int) -> JSON {
+    public subscript(index: Int) -> JSON {
         set {
             guard self.rawType == .array, self.rawArray.indices.contains(index) else { return }
             self.rawArray[index] = newValue.object
@@ -111,7 +109,7 @@ public extension JSON {
         }
     }
     
-    subscript(key: String) -> JSON {
+    public subscript(key: String) -> JSON {
         set {
             guard self.rawType == .dictionary else { return }
             self.rawDictionary[key] = newValue.object
@@ -127,18 +125,18 @@ public extension JSON {
 }
 
 // MARK: - Value (Array)
-public extension JSON {
+extension JSON {
     
-    var array: [JSON]? {
+    public var array: [JSON]? {
         guard self.rawType == .array else { return nil }
         return self.rawArray.map { JSON($0) }
     }
     
-    var arrayValue: [JSON] {
+    public var arrayValue: [JSON] {
         return self.array ?? []
     }
     
-    var arrayObject: [Any]? {
+    public var arrayObject: [Any]? {
         switch self.rawType {
         case .array:
             return self.rawArray
@@ -147,16 +145,16 @@ public extension JSON {
         }
     }
     
-    var arrayObjectValue: [Any] {
+    public var arrayObjectValue: [Any] {
         return self.arrayObject ?? []
     }
     
 }
 
 // MARK: - Value (Dictionary)
-public extension JSON {
+extension JSON {
     
-    var dictionary: [String: JSON]? {
+    public var dictionary: [String: JSON]? {
         guard self.rawType == .dictionary else { return nil }
         
         var dictionary: [String : JSON] = [:]
@@ -169,11 +167,11 @@ public extension JSON {
         
     }
     
-    var dictionaryValue: [String: JSON] {
+    public var dictionaryValue: [String: JSON] {
         return self.dictionary ?? [:]
     }
     
-    var dictionaryObject: [String: Any]? {
+    public var dictionaryObject: [String: Any]? {
         switch self.rawType {
         case .dictionary:
             return self.rawDictionary
@@ -189,9 +187,9 @@ public extension JSON {
 }
 
 // MARK: - Value (Number)
-public extension JSON {
+extension JSON {
     
-    var number: NSNumber? {
+    public var number: NSNumber? {
         switch self.rawType {
         case .number:
             return self.rawNumber
@@ -208,55 +206,55 @@ public extension JSON {
         }
     }
     
-    var numberValue: NSNumber {
+    public var numberValue: NSNumber {
         return self.number ?? 0
     }
     
 }
 
 // MARK: - Value (Int)
-public extension JSON {
+extension JSON {
     
-    var int: Int? {
+    public var int: Int? {
         return self.number?.intValue
     }
     
-    var intValue: Int {
+    public var intValue: Int {
         return self.int ?? 0
     }
     
 }
 
 // MARK: - Value (Float)
-public extension JSON {
+extension JSON {
     
-    var float: Float? {
+    public var float: Float? {
         return self.number?.floatValue
     }
     
-    var floatValue: Float {
+    public var floatValue: Float {
         return self.float ?? 0
     }
     
 }
 
 // MARK: - Value (Double)
-public extension JSON {
+extension JSON {
     
-    var double: Double? {
+    public var double: Double? {
         return self.number?.doubleValue
     }
     
-    var doubleValue: Double {
+    public var doubleValue: Double {
         return self.double ?? 0
     }
     
 }
 
 // MARK: - Value (String)
-public extension JSON {
+extension JSON {
     
-    var string: String? {
+    public var string: String? {
         switch self.rawType {
         case .string:
             return self.rawString
@@ -272,16 +270,16 @@ public extension JSON {
         }
     }
     
-    var stringValue: String {
+    public var stringValue: String {
         return self.string ?? ""
     }
     
 }
 
 // MARK: - Value (Bool)
-public extension JSON {
+extension JSON {
     
-    var bool: Bool? {
+    public var bool: Bool? {
         switch self.rawType {
         case .bool:
             return self.rawBool
@@ -303,16 +301,16 @@ public extension JSON {
         }
     }
     
-    var boolValue: Bool {
+    public var boolValue: Bool {
         return self.bool ?? false
     }
     
 }
 
 // MARK: - Value (URL)
-public extension JSON {
+extension JSON {
     
-    var url: URL? {
+    public var url: URL? {
         guard self.rawType == .string else { return nil }
         
         if let url = URL(string: self.rawString) {
@@ -328,13 +326,13 @@ public extension JSON {
 }
 
 // MARK: - Value (Null)
-public extension JSON {
+extension JSON {
     
-    var isNull: Bool {
+    public var isNull: Bool {
         return self.rawType == .null
     }
     
-    var null: NSNull? {
+    public var null: NSNull? {
         return self.rawType == .null ? NSNull() : nil
     }
     

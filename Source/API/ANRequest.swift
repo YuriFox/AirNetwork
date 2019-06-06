@@ -75,7 +75,7 @@ public struct ANRequest: Hashable, CustomStringConvertible {
     ///
     /// - Parameter url: The URL for the request.
     public init(url: URL) {
-        self.init(domain: url.domain, path: url.path, method: .GET)
+        self.init(domain: url.domain, path: url.path, method: .get)
     }
     
     public static func == (lhs: ANRequest, rhs: ANRequest) -> Bool {
@@ -85,25 +85,56 @@ public struct ANRequest: Hashable, CustomStringConvertible {
 }
 
 // MARK: - Method
-public extension ANRequest {
+extension ANRequest {
     
-    public enum Method: String {
+    public enum Method: RawRepresentable {
         
-        case GET, HEAD, POST, PUT, PATCH, DELETE, TRACE, OPTIONS
+        case get, head, post, put, patch, delete, trace, options, custom(String)
+        
+        public var rawValue: String {
+            switch self {
+            case .get: return "GET"
+            case .head: return "HEAD"
+            case .post: return "POST"
+            case .put: return "PUT"
+            case .patch: return "PATCH"
+            case .delete: return "DELETE"
+            case .trace: return "TRACE"
+            case .options: return "OPTIONS"
+            case let .custom(value): return value.uppercased()
+            }
+        }
         
         public var supportsBody: Bool {
             switch self {
-            case .POST, .PUT, .PATCH: return true
-            case .GET, .HEAD, .DELETE, .TRACE, .OPTIONS: return false
+            case .post, .put, .patch: return true
+            default: return false
             }
         }
+        
+        public init(rawValue: String) {
+            let value = rawValue.lowercased()
+            switch value {
+            case "get": self = .get
+            case "head": self = .head
+            case "post": self = .post
+            case "put": self = .put
+            case "patch": self = .patch
+            case "delete": self = .delete
+            case "trace": self = .trace
+            case "options": self = .options
+            default: self = .custom(value)
+            }
+        }
+        
+        public typealias RawValue = String
         
     }
     
 }
 
 // MARK: - ContentType
-public extension ANRequest {
+extension ANRequest {
     
     public enum ContentType: String {
         
@@ -121,7 +152,7 @@ public extension ANRequest {
 }
 
 // MARK: - Body
-public extension ANRequest {
+extension ANRequest {
     
     public struct Body {
         
@@ -191,7 +222,7 @@ extension URLRequest {
             self.setValue($0.value, forHTTPHeaderField: $0.key)
         }
         
-        guard let body = request.body else { return }
+        guard let body = request.body, request.method.supportsBody else { return }
         
         switch body.contentType {
         case .text:
@@ -208,7 +239,6 @@ extension URLRequest {
             self.httpBody = body.items.json.urlEncodedData
             
         case .multipart:
-            
             let boundary = "Boundary-\(UUID().uuidString)"
             let contentTypeValue = "\(body.contentType.rawValue); boundary=\(boundary)"
             self.setValue(contentTypeValue, forHTTPHeaderField: ANRequest.ContentType.key)

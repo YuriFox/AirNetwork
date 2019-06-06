@@ -99,20 +99,16 @@ extension Array: JSONDefaultDecodable {
 
 extension Dictionary: JSONDefaultDecodable {
     
-    /// This init isn't tested now, so it may not works correctly
     public init?(json: JSON) {
-        guard let dictionary = json.dictionaryObject else { return nil }
+        guard let dictionary = json.dictionary else { return nil }
         self = {
             var temp: [Key : Value] = [:]
             dictionary.forEach {
-//                if JSONDecodable {
-//                    var temp: [Key : Value] = [:]
-//                    dictionary.forEach { temp[$0.key] = Value.init(json: $0.value) }
-//                    return temp
-//                }
-                
-                if let key = $0.key as? Key, let value = $0.value as? Value {
-                    temp[key] = value
+                guard let key = $0.key as? Key else { return }
+                if let ValueType = Value.self as? JSONDecodable.Type {
+                    temp[key] = ValueType.init(json: $0.value) as? Value
+                } else {
+                    temp[key] = $0 as? Value
                 }
             }
             return temp

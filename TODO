@@ -1,19 +1,15 @@
-// Create UPLOAD task
-// Refactor DATA, DOWNLOAD
+1. Create UPLOAD task
 
-// ANTaskResult CLASS or STRUCT above ENUM
-// ANTaskResult as CLASS or STRUCT with func parse(smthParameters?) throws -> SMTH where: 
-// - SMTH is Data, JSON, etc.
-// - smthParameters is ???
-// - throw is ANTaskKError
+2. func parse(smthParameters?) throws -> SMTH where:
+- SMTH is Data, JSON, etc.
+- smthParameters is ???
+- throw is ANTaskKError
 
-3. 
-
-4. Create ANLoadingIndicatorProtocol. ANRequest has property `loading indicator` which will connected to request. When request startted loading indicator started too.
+3. Create ANLoadingIndicatorProtocol. ANRequest has property `loading indicator` which will connected to request. When request startted loading indicator started too.
 - var isLoading: Bool { set get }
 
-5. Task ID
+4. Task ID + ANManager.cancelAllTasks + ANManager.cancelTasks(with id: ID)
 
-6. Transform as ObjectMapper
+5. Transform as ObjectMapper
 
-7. README
+6. README

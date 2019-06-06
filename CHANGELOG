@@ -1,3 +1,7 @@
+=== v1.3.1 ===
+- Updated to Swift 5
+- Added json convertation to Dictionary where Value: JSONDecodable
+
 === v1.3 ===
 - Fixed multiple query items encoding
 - Code refactoring
